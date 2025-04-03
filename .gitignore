@@ -1,0 +1,69 @@
+# ----------------------
+# FRONTEND (React/MUI)
+# ----------------------
+
+# dependencies
+frontend/node_modules/
+
+# build output
+frontend/build/
+frontend/dist/
+
+# misc
+frontend/.DS_Store
+frontend/.env
+frontend/.env.*
+
+# cache
+frontend/.parcel-cache/
+frontend/.cache/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# editor settings
+frontend/.vscode/
+frontend/.idea/
+
+
+# ----------------------
+# BACKEND (Flask)
+# ----------------------
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Flask runtime files
+instance/
+.webassets-cache/
+
+# Python cache
+*.pyc
+*.pyo
+
+# Logs and debug
+*.log
+
+# Environment variables
+.env
+.env.*
+
+# DB files (if using sqlite for local dev)
+*.sqlite3
+*.db
+
+# editor settings
+.vscode/
+.idea/
+
+# OS-specific
+.DS_Store
+Thumbs.db
