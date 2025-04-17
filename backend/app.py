@@ -1,11 +1,16 @@
+import os
 from flask import Flask, redirect, render_template, request, jsonify, send_from_directory
 from flask_cors import CORS
 import pymongo
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
-import os
+import requests
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
 
 # MONGODB CONNECTION
+load_dotenv()
+AVIATIONSTACK_KEY = os.getenv('AVIATIONSTACK_KEY')
 uri = "mongodb+srv://user:user@cluster0.uyab0n1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 client = MongoClient(uri, server_api=ServerApi('1'))
 
@@ -98,6 +103,48 @@ def sign_in():
         return jsonify({'status': 'success', 'message': 'Signed in successfully'})
     else:
         return jsonify({'status': 'error', 'message': 'Incorrect username or password'})
+    
+# ─── AviationStack Flights Endpoint ─────────────────────────────────────────
+def parse_dep_time(dep_time_str: str) -> datetime:
+    # e.g. "2025-04-17T14:30:00+00:00"
+    return datetime.fromisoformat(dep_time_str)
+
+@app.route('/api/upcoming', methods=['GET'])
+def upcoming_flights():
+    airport = request.args.get('airport', 'AUS').upper()
+    today = datetime.utcnow().date().isoformat()
+    resp = requests.get(
+        'http://api.aviationstack.com/v1/flights',
+        params={
+            'access_key': AVIATIONSTACK_KEY,
+            'dep_iata': airport,
+            'flight_date': today,
+            'limit': 100
+        }
+    )
+    flights = resp.json().get('data', [])
+    now = datetime.utcnow()
+    cutoff = now + timedelta(minutes=120)
+    upcoming = []
+
+    for f in flights:
+        dep_str = f.get('departure', {}).get('scheduled')
+        if not dep_str:
+            continue
+        try:
+            dep = parse_dep_time(dep_str)
+        except:
+            continue
+        if now < dep <= cutoff:
+            upcoming.append({
+                'flight_iata': f.get('flight', {}).get('iata', ''),
+                'dep_time': dep_str,
+                'arr_iata': f.get('arrival', {}).get('iata', ''),
+                'status': f.get('flight_status', '')
+            })
+
+    return jsonify(upcoming)
+# ──────────────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
     app.run(host='localhost', debug=True)
